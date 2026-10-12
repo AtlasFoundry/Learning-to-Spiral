@@ -55,6 +55,7 @@ import {
   type Quote,
   type Source,
   type Visual,
+  type Pillar,
 } from "./library";
 
 type Tab = "Research" | "Quotes & Extracts" | "Diagrams & Visuals";
@@ -62,7 +63,7 @@ type Modal =
   | { kind: "source"; value: Source }
   | { kind: "quote"; value: Quote }
   | { kind: "visual"; value: Visual }
-  | { kind: "lesson" }
+  | { kind: "lesson"; pillarId?: string }
   | { kind: "settings" }
   | { kind: "link"; tab: Tab }
   | { kind: "export"; lesson: Lesson }
@@ -266,6 +267,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
   const lesson = library.lessons.find((l) => l.id === selectedId);
+  const activePillar = library.pillars.find((p) => p.id === pillar);
   useEffect(() => {
     if (loaded && view === "editor" && !lesson) setView("lessons");
   }, [loaded, view, lesson]);
@@ -334,6 +336,16 @@ export default function App() {
       setModal({ kind: "export", lesson });
     }
   };
+  const updatePillarDetails = (
+    pillarId: string,
+    patch: Pick<Pillar, "aim" | "disposition">,
+  ) =>
+    setLibrary((previous) => ({
+      ...previous,
+      pillars: previous.pillars.map((p) =>
+        p.id === pillarId ? { ...p, ...patch } : p,
+      ),
+    }));
   const navigate = (next: typeof view) => {
     setView(next);
     setSearch("");
@@ -574,8 +586,9 @@ export default function App() {
               className={pillar === p.id && view !== "editor" ? "selected" : ""}
               key={p.id}
               onClick={() => {
-                if (view === "editor") setView("lessons");
-                setPillar(pillar === p.id ? "all" : p.id);
+                setView("lessons");
+                setPillar(view === "lessons" && pillar === p.id ? "all" : p.id);
+                setSearch("");
                 setLessonFilter("all");
               }}
             >
@@ -657,43 +670,82 @@ export default function App() {
               <div className="page-heading">
                 <div>
                   <div className="eyebrow">A PRACTICE OF UNDERSTANDING</div>
-                  <h1>Your Lesson Studio</h1>
+                  <h1>{activePillar?.name ?? "Your Lesson Studio"}</h1>
                   <p>
-                    A place to gather your thinking, connect ideas, and shape
-                    what comes next.
+                    {activePillar
+                      ? "Set an intention for this pillar, then develop its lessons."
+                      : "A place to gather your thinking, connect ideas, and shape what comes next."}
                   </p>
                 </div>
                 <button
                   className="primary"
-                  onClick={() => setModal({ kind: "lesson" })}
+                  onClick={() =>
+                    setModal({ kind: "lesson", pillarId: activePillar?.id })
+                  }
                 >
                   <Plus size={17} />
                   New lesson
                 </button>
               </div>
-              <div className="studio-intro">
-                <div className="intro-symbol">◎</div>
-                <div>
-                  <span className="eyebrow">ONE IDEA BECOMES MANY</span>
-                  <h2>Make room for deeper learning.</h2>
-                  <p>
-                    Your lessons and their supporting research, quotes, and
-                    visuals grow together.
-                  </p>
-                </div>
-                <button
-                  className="text-button"
-                  onClick={() => navigate("library")}
+              {activePillar ? (
+                <section
+                  className="pillar-purpose"
+                  aria-labelledby="pillar-purpose-title"
                 >
-                  Explore your library
-                  <ArrowRight size={16} />
-                </button>
-              </div>
+                  <h2 id="pillar-purpose-title">
+                    What this pillar aims to accomplish
+                  </h2>
+                  <p className="small muted">
+                    Describe the understanding, practice, or growth you want
+                    this pillar to support.
+                  </p>
+                  <textarea
+                    aria-label="What this pillar aims to accomplish"
+                    rows={4}
+                    value={activePillar.aim ?? ""}
+                    placeholder="In your own words, what would you like this pillar to make possible?"
+                    onChange={(e) =>
+                      updatePillarDetails(activePillar.id, {
+                        aim: e.target.value,
+                      })
+                    }
+                  />
+                  <h2 className="disposition-heading">Central disposition</h2>
+                  <textarea
+                    aria-label="Central disposition"
+                    rows={3}
+                    value={activePillar.disposition ?? ""}
+                    placeholder="Describe the central disposition you want to cultivate…"
+                    onChange={(e) =>
+                      updatePillarDetails(activePillar.id, {
+                        disposition: e.target.value,
+                      })
+                    }
+                  />
+                </section>
+              ) : (
+                <div className="studio-intro">
+                  <div className="intro-symbol">◎</div>
+                  <div>
+                    <span className="eyebrow">ONE IDEA BECOMES MANY</span>
+                    <h2>Make room for deeper learning.</h2>
+                    <p>
+                      Your lessons and their supporting research, quotes, and
+                      visuals grow together.
+                    </p>
+                  </div>
+                  <button
+                    className="text-button"
+                    onClick={() => navigate("library")}
+                  >
+                    Explore your library
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              )}
               <div className="section-heading">
                 <h2>
-                  {pillar === "all"
-                    ? "All lessons"
-                    : library.pillars.find((p) => p.id === pillar)?.name}
+                  {pillar === "all" ? "All lessons" : "Lessons in this pillar"}
                   <span className="count">
                     {
                       library.lessons.filter(
@@ -702,15 +754,33 @@ export default function App() {
                     }
                   </span>
                 </h2>
-                <label className="search">
-                  <Search size={16} />
-                  <input
-                    placeholder="Find a lesson…"
-                    aria-label="Find a lesson"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </label>
+                <div className="lesson-filters">
+                  <select
+                    className="pillar-select"
+                    aria-label="View pillar"
+                    value={pillar}
+                    onChange={(e) => {
+                      setPillar(e.target.value);
+                      setSearch("");
+                    }}
+                  >
+                    <option value="all">All pillars</option>
+                    {library.pillars.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="search">
+                    <Search size={16} />
+                    <input
+                      placeholder="Find a lesson…"
+                      aria-label="Find a lesson"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </label>
+                </div>
               </div>
               <div className="lesson-grid">
                 {library.lessons
@@ -775,7 +845,9 @@ export default function App() {
                   {!search && (
                     <button
                       className="primary"
-                      onClick={() => setModal({ kind: "lesson" })}
+                      onClick={() =>
+                        setModal({ kind: "lesson", pillarId: activePillar?.id })
+                      }
                     >
                       <Plus size={16} />
                       Create a lesson
@@ -1329,7 +1401,11 @@ function ModalContent({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
-  const [pillarId, setPillarId] = useState(library.pillars[0].id);
+  const [pillarId, setPillarId] = useState(
+    modal.kind === "lesson" && modal.pillarId
+      ? modal.pillarId
+      : library.pillars[0].id,
+  );
   const [pillars, setPillars] = useState(library.pillars);
   const [chosen, setChosen] = useState<string[]>(
     modal.kind === "link"

@@ -2,7 +2,11 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
-  workers: 2,
+  // Serial browser checks avoid CPU contention in the cloud environment.
+  workers: 1,
+  // Allow for slower browser startup and rendering in shared cloud machines.
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
   use: {
     baseURL: "http://127.0.0.1:5173",
     headless: true,

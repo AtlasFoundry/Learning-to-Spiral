@@ -6,7 +6,7 @@ A quiet, local-first lesson editor with a cumulative Research & Visual Library. 
 
 For the simplest download, [download the Studio ZIP](https://github.com/AtlasFoundry/Learning-to-Spiral/raw/refs/heads/main/Learning-to-Spiral-Studio.zip). Double-click the ZIP to extract it, then double-click **Learning-to-Spiral.html** in Chrome. The ZIP contains only the studio HTML, so there is no development file to select by mistake.
 
-You can also download [Learning-to-Spiral.html](Learning-to-Spiral.html) directly. On GitHub, open that exact file and choose **Download raw file**. The full studio is about **309 KB**. The much smaller `index.html` is the development entry and will not run when double-clicked. GitHub's code viewer displays the code; the downloaded standalone HTML opens the app in your browser.
+You can also download [Learning-to-Spiral.html](Learning-to-Spiral.html) directly. On GitHub, open that exact file and choose **Download raw file**. The full studio is over **300 KB**. The much smaller `index.html` is the development entry and will not run when double-clicked. GitHub's code viewer displays the code; the downloaded standalone HTML opens the app in your browser.
 
 This is the standalone app: it embeds the application and styles and runs offline without installation or a server. Use a current browser with IndexedDB support. The source `index.html` and the multi-file production `dist/index.html` require a server; they are not the standalone file.
 
@@ -39,6 +39,8 @@ The cloud image includes Chromium. On another machine, install Playwright Chromi
 ## Using the studio
 
 Create a lesson and assign one of nine editable pillars, in this order: Self-image; Attention & mind; Goals & discernment; Intention; Imagination & feeling; Autosuggestion & conditioning; Faith & prayer; Order, action & movement; Integration & embodiment. Rename them using the gear next to **The nine pillars**, or **Workspace tools** on mobile. Existing browser libraries and older backups receive the supplied names for unchanged Pillar 1–9 placeholders once; custom names, lessons, and their links are preserved.
+
+Open a pillar from the sidebar or the **View pillar** dropdown above the lesson list. Each pillar has its own editable **What this pillar aims to accomplish** and **Central disposition** fields. They begin blank for your own words, save automatically in IndexedDB, and travel with your portable backup. New lessons created in that view are assigned to the selected pillar. A lesson's Markdown export and copied ChatGPT brief include its pillar's aims and disposition when recorded. Older backups without these optional fields still work; the lesson-update importer preserves pillar context and cannot rewrite it.
 
 Every lesson contains **Research**, **Quotes & Extracts**, and **Diagrams & Visuals** tabs. Add an entry, or use **Link existing** to connect a master entry to the lesson. Editing an entry updates it everywhere it is linked. The central **Research & Visuals** view browses the same entries, filtered by pillar, lesson, and quote use. Quotes require an original research entry; its author and title supply attribution. Sources used by linked quotes remain visible in their lessons even if their direct lesson link is removed. Deleting a source is blocked while any quote still references it.
 

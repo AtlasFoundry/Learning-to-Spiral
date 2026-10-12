@@ -568,6 +568,65 @@ main {
   align-items: center;
   margin: 0 0 21px;
 }
+.pillar-purpose {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--paper);
+  padding: 25px 28px;
+  margin-bottom: 32px;
+}
+.pillar-purpose h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.pillar-purpose .disposition-heading {
+  margin-top: 24px;
+}
+.pillar-purpose p {
+  margin-bottom: 17px;
+}
+.pillar-purpose textarea {
+  line-height: 1.7;
+  background: #fdfcf8;
+}
+.lesson-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.pillar-select {
+  max-width: 245px;
+  font-size: 11px;
+}
+@media (max-width: 800px) {
+  .section-heading {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .lesson-filters {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .lesson-filters .search {
+    flex: 1;
+    max-width: none;
+  }
+  .pillar-purpose {
+    padding: 21px;
+  }
+  .pillar-purpose h2 {
+    font-size: 23px;
+  }
+}
+@media (max-width: 500px) {
+  .lesson-filters .pillar-select {
+    max-width: none;
+  }
+  .pillar-purpose h2 {
+    font-size: 22px;
+  }
+}
 .section-heading h2 {
   display: flex;
   gap: 10px;

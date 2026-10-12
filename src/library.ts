@@ -27,7 +27,12 @@ export type Lesson = {
   notes: string;
   questions?: string;
 };
-export type Pillar = { id: string; name: string };
+export type Pillar = {
+  id: string;
+  name: string;
+  aim?: string;
+  disposition?: string;
+};
 export type Source = {
   id: string;
   title: string;
@@ -262,6 +267,13 @@ export async function restoreLibrary(text: string): Promise<Library> {
     }
   }
   if (value.pillars.length !== 9) fail();
+  for (const pillar of value.pillars)
+    if (
+      (pillar.aim !== undefined && typeof pillar.aim !== "string") ||
+      (pillar.disposition !== undefined &&
+        typeof pillar.disposition !== "string")
+    )
+      fail();
   const contains = (list: { id: string }[], key: string) =>
     list.some((item) => item.id === key);
   const linksValid = (item: { lessonIds: string[] }) =>
@@ -342,6 +354,7 @@ export async function restoreLibrary(text: string): Promise<Library> {
   });
 }
 export function lessonExport(library: Library, lesson: Lesson) {
+  const pillar = library.pillars.find((p) => p.id === lesson.pillarId);
   const quotes = library.quotes.filter((q) => q.lessonIds.includes(lesson.id));
   const sources = library.sources.filter(
     (s) =>
@@ -354,7 +367,13 @@ export function lessonExport(library: Library, lesson: Lesson) {
   const lines = [
     `# ${lesson.title}`,
     `Lesson ID: ${lesson.id}`,
-    `Pillar: ${library.pillars.find((p) => p.id === lesson.pillarId)?.name}`,
+    `Pillar: ${pillar?.name}`,
+    ...(pillar?.aim
+      ? ["\n## What this pillar aims to accomplish", pillar.aim]
+      : []),
+    ...(pillar?.disposition
+      ? ["\n## Central disposition", pillar.disposition]
+      : []),
     "\n## Lesson overview",
     lesson.summary,
     "\n## Teaching notes",
