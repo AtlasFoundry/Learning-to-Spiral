@@ -4,13 +4,15 @@ A quiet, local-first lesson editor with a cumulative Research & Visual Library. 
 
 ## Open directly
 
-Download [Learning-to-Spiral.html](Learning-to-Spiral.html) and double-click the saved file. On GitHub, open that file and choose **Download raw file**. GitHub's code viewer displays the code; the downloaded HTML opens the app in your browser.
+For the simplest download, [download the Studio ZIP](https://github.com/AtlasFoundry/Learning-to-Spiral/raw/refs/heads/main/Learning-to-Spiral-Studio.zip). Double-click the ZIP to extract it, then double-click **Learning-to-Spiral.html** in Chrome. The ZIP contains only the studio HTML, so there is no development file to select by mistake.
+
+You can also download [Learning-to-Spiral.html](Learning-to-Spiral.html) directly. On GitHub, open that exact file and choose **Download raw file**. The full studio is about **309 KB**. The much smaller `index.html` is the development entry and will not run when double-clicked. GitHub's code viewer displays the code; the downloaded standalone HTML opens the app in your browser.
 
 This is the standalone app: it embeds the application and styles and runs offline without installation or a server. Use a current browser with IndexedDB support. The source `index.html` and the multi-file production `dist/index.html` require a server; they are not the standalone file.
 
 `npm run build` regenerates both the hosted production build and the standalone HTML. `npm test` first rebuilds, then validates the hosted workflow and the exact embedded HTML with network access disabled, including lesson/image persistence and a portable backup. Direct file opening is checked when the browser permits file URLs; the managed cloud browser blocks them by policy, so that check is reported as skipped here. External research/image links still need Internet access.
 
-The regenerated standalone HTML is at **dist/Learning-to-Spiral.html**. The file in the repository's top-level directory is the ready-to-download version; refresh it from the generated file when deliberately preparing a new version for GitHub. Routine setup and builds leave the checked-in download unchanged.
+The regenerated standalone HTML is at **dist/Learning-to-Spiral.html**. The file in the repository's top-level directory is the ready-to-download version; refresh it from the generated file and update the ZIP with that same HTML when deliberately preparing a new version for GitHub. Routine setup and builds leave the checked-in downloads unchanged.
 
 Browser storage can differ between a hosted app and an opened file, and between filenames or locations depending on the browser. Keep the standalone file in the same location and use portable backups when moving it, updating it, or switching between the hosted and standalone versions.
 
