@@ -5,7 +5,12 @@ export const sourceTypes = [
   "Spiritual text",
   "Other",
 ] as const;
-export const researchStatuses = ["To read", "Reading", "Reviewed"] as const;
+export const researchStatuses = [
+  "To read",
+  "Reading",
+  "Reviewed",
+  "Awaiting verification",
+] as const;
 export const visualStatuses = ["Idea", "To design", "Draft", "Final"] as const;
 export const uses = [
   "YouTube",
@@ -20,6 +25,7 @@ export type Lesson = {
   summary: string;
   content: string;
   notes: string;
+  questions?: string;
 };
 export type Pillar = { id: string; name: string };
 export type Source = {
@@ -265,7 +271,11 @@ export async function restoreLibrary(text: string): Promise<Library> {
       (link) => typeof link === "string" && contains(value.lessons, link),
     );
   for (const lesson of value.lessons)
-    if (!contains(value.pillars, lesson.pillarId)) fail();
+    if (
+      !contains(value.pillars, lesson.pillarId) ||
+      (lesson.questions !== undefined && typeof lesson.questions !== "string")
+    )
+      fail();
   for (const source of value.sources)
     if (
       !linksValid(source) ||
@@ -343,6 +353,7 @@ export function lessonExport(library: Library, lesson: Lesson) {
   );
   const lines = [
     `# ${lesson.title}`,
+    `Lesson ID: ${lesson.id}`,
     `Pillar: ${library.pillars.find((p) => p.id === lesson.pillarId)?.name}`,
     "\n## Lesson overview",
     lesson.summary,
@@ -350,11 +361,14 @@ export function lessonExport(library: Library, lesson: Lesson) {
     lesson.content,
     "\n## My notes",
     lesson.notes,
+    "\n## Outstanding questions",
+    lesson.questions || "[none recorded]",
     "\n## Research",
   ];
   for (const s of sources)
     lines.push(
       `\n### ${s.title}`,
+      `Source ID: ${s.id}`,
       `Author: ${s.author || "[not recorded]"} | Year: ${s.year || "[not recorded]"} | ${s.type} | ${s.status}`,
       `URL / DOI: ${s.url || "[not recorded]"}`,
       `Pages / chapters: ${s.reference || "[not recorded]"}`,
@@ -367,6 +381,7 @@ export function lessonExport(library: Library, lesson: Lesson) {
     const source = library.sources.find((s) => s.id === q.sourceId)!;
     lines.push(
       `\n> ${q.text.replace(/\n/g, "\n> ")}`,
+      `Quote ID: ${q.id} | Source ID: ${q.sourceId}`,
       `Attribution: ${source.author || "[not recorded]"}, ${source.title}; ${q.reference || "[page/section not recorded]"}`,
       `Teaching point: ${q.point}`,
       `My interpretation: ${q.commentary}`,
@@ -377,6 +392,7 @@ export function lessonExport(library: Library, lesson: Lesson) {
   for (const v of visuals)
     lines.push(
       `\n### ${v.title} (${v.status})`,
+      `Diagram ID: ${v.id}`,
       v.description,
       `Concept: ${v.concept}`,
       `Placement: ${v.placement}`,

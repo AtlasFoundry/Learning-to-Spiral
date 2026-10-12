@@ -44,6 +44,8 @@ Research supports bibliographic details, reading status, findings, personal note
 
 **Export for ChatGPT** offers Markdown containing the lesson, its linked sources and exact quotes, visual descriptions, and all notes. It marks missing attribution as not recorded. **Download with attachments** creates a portable lesson JSON with uploaded files embedded; the text plus relevant images/documents can be supplied to ChatGPT separately. Source attachments and diagram images can be downloaded from their edit dialogs.
 
+**Copy for ChatGPT** copies a structured Markdown brief, including the permanent lesson ID and outstanding questions. **Import from ChatGPT** accepts a pasted or uploaded lesson-update JSON, previews each revision/addition, and saves only the changes you accept. It updates one lesson without replacing the workspace or deleting library records and attachments. New research starts as **Awaiting verification**. See [the exact response format and examples](CHATGPT-EXCHANGE.md).
+
 ## Storage and portable backups
 
 Metadata and actual uploaded file blobs are saved together in IndexedDB. Wait for **Saved locally** before closing the page. If a write fails, the studio shows the failure and the current in-memory workspace can still be downloaded. Files are limited to 10 MB each. There is no account or server sync: browser storage is specific to the site's origin and can be cleared by the browser. Use one editing tab at a time.

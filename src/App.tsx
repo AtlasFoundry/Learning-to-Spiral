@@ -29,7 +29,11 @@ import {
   Trash2,
   ExternalLink,
   CircleHelp,
+  Copy,
 } from "lucide-react";
+import ChatGPTImport from "./ChatGPTImport";
+import { chatGPTBrief, copyText } from "./exchange";
+import { useDialogFocus } from "./dialog";
 import {
   backupLibrary,
   download,
@@ -62,6 +66,7 @@ type Modal =
   | { kind: "settings" }
   | { kind: "link"; tab: Tab }
   | { kind: "export"; lesson: Lesson }
+  | { kind: "chatgptImport"; lessonId: string }
   | { kind: "restore"; library: Library };
 const tabs: { name: Tab; icon: typeof BookOpen }[] = [
   { name: "Research", icon: BookOpen },
@@ -318,6 +323,17 @@ export default function App() {
         l.id === selectedId ? { ...l, ...patch } : l,
       ),
     }));
+  const copyLessonBrief = async (lesson: Lesson) => {
+    try {
+      await copyText(chatGPTBrief(library, lesson));
+      setNotice("Lesson brief copied for ChatGPT, with line breaks preserved.");
+    } catch {
+      setNotice(
+        "Clipboard unavailable. Select and copy the brief in the export dialog.",
+      );
+      setModal({ kind: "export", lesson });
+    }
+  };
   const navigate = (next: typeof view) => {
     setView(next);
     setSearch("");
@@ -780,13 +796,31 @@ export default function App() {
                   <div className="eyebrow">YOUR IDEAS, TAKING SHAPE</div>
                   <h1>{lesson.title}</h1>
                 </div>
-                <button
-                  className="secondary"
-                  onClick={() => setModal({ kind: "export", lesson })}
-                >
-                  <Sparkles size={16} />
-                  Export for ChatGPT
-                </button>
+                <div className="exchange-actions">
+                  <button
+                    className="secondary"
+                    onClick={() => copyLessonBrief(lesson)}
+                  >
+                    <Copy size={16} />
+                    Copy for ChatGPT
+                  </button>
+                  <button
+                    className="secondary"
+                    onClick={() =>
+                      setModal({ kind: "chatgptImport", lessonId: lesson.id })
+                    }
+                  >
+                    <Upload size={16} />
+                    Import from ChatGPT
+                  </button>
+                  <button
+                    className="secondary"
+                    onClick={() => setModal({ kind: "export", lesson })}
+                  >
+                    <Sparkles size={16} />
+                    Export for ChatGPT
+                  </button>
+                </div>
               </div>
               <section className="lesson-editor">
                 <div className="editor-row">
@@ -836,6 +870,18 @@ export default function App() {
                     value={lesson.notes}
                     placeholder="A thought to return to…"
                     onChange={(e) => updateLesson({ notes: e.target.value })}
+                  />
+                </details>
+                <details className="personal-notes outstanding-questions">
+                  <summary>Outstanding questions</summary>
+                  <textarea
+                    aria-label="Outstanding questions"
+                    rows={3}
+                    value={lesson.questions ?? ""}
+                    placeholder="What would you like to explore or ask ChatGPT?"
+                    onChange={(e) =>
+                      updateLesson({ questions: e.target.value })
+                    }
                   />
                 </details>
               </section>
@@ -1224,18 +1270,28 @@ export default function App() {
           </button>
         </div>
       )}
-      {modal && (
-        <ModalContent
-          key={modal.kind + ("value" in modal ? modal.value.id : "")}
-          modal={modal}
+      {modal?.kind === "chatgptImport" ? (
+        <ChatGPTImport
           library={library}
+          lessonId={modal.lessonId}
           close={() => setModal(null)}
-          setLibrary={setLibrary}
-          setNotice={setNotice}
-          openLesson={openLesson}
-          selectedId={view === "editor" ? selectedId : ""}
-          deleteEntry={deleteEntry}
+          onSaved={setLibrary}
+          notify={setNotice}
         />
+      ) : (
+        modal && (
+          <ModalContent
+            key={modal.kind + ("value" in modal ? modal.value.id : "")}
+            modal={modal}
+            library={library}
+            close={() => setModal(null)}
+            setLibrary={setLibrary}
+            setNotice={setNotice}
+            openLesson={openLesson}
+            selectedId={view === "editor" ? selectedId : ""}
+            deleteEntry={deleteEntry}
+          />
+        )
       )}
     </div>
   );
@@ -1251,7 +1307,7 @@ function ModalContent({
   selectedId,
   deleteEntry,
 }: {
-  modal: Modal;
+  modal: Exclude<Modal, { kind: "chatgptImport" }>;
   library: Library;
   close: () => void;
   setLibrary: React.Dispatch<React.SetStateAction<Library>>;
@@ -1288,44 +1344,7 @@ function ModalContent({
       : [],
   );
   const [linkSearch, setLinkSearch] = useState("");
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeRef = useRef(close);
-  closeRef.current = close;
-  useEffect(() => {
-    const oldFocus = document.activeElement as HTMLElement;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const dialog = dialogRef.current!;
-    const first = dialog.querySelector<HTMLElement>(
-      "input, textarea, select, button",
-    );
-    first?.focus();
-    const keydown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeRef.current();
-      if (event.key === "Tab") {
-        const nodes = Array.from(
-          dialog.querySelectorAll<HTMLElement>(
-            "button:not([disabled]), input:not([disabled]), textarea, select, a[href]",
-          ),
-        ).filter((n) => n.getClientRects().length);
-        const first = nodes[0];
-        const last = nodes[nodes.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last?.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first?.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.body.style.overflow = oldOverflow;
-      document.removeEventListener("keydown", keydown);
-      oldFocus?.focus();
-    };
-  }, []);
+  const dialogRef = useDialogFocus(close);
   const isEntry = ["source", "quote", "visual"].includes(modal.kind);
   const existing =
     modal.kind === "source"
@@ -2074,6 +2093,23 @@ function ModalContent({
                 <div className="export-actions">
                   <button
                     type="button"
+                    className="secondary"
+                    onClick={async () => {
+                      try {
+                        await copyText(chatGPTBrief(library, modal.lesson));
+                        setNotice("Lesson brief copied for ChatGPT.");
+                      } catch {
+                        setError(
+                          "Clipboard unavailable. Select and copy the brief below.",
+                        );
+                      }
+                    }}
+                  >
+                    <Copy size={16} />
+                    Copy for ChatGPT
+                  </button>
+                  <button
+                    type="button"
                     className="primary"
                     disabled={busy}
                     onClick={() => exportFiles("text")}
@@ -2098,7 +2134,7 @@ function ModalContent({
                   marked.
                 </p>
                 <pre className="export-preview">
-                  {lessonExport(library, modal.lesson)}
+                  {chatGPTBrief(library, modal.lesson)}
                 </pre>
               </>
             )}
