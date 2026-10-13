@@ -206,6 +206,10 @@ export async function backupLibrary(library: Library) {
 export async function restoreLibrary(text: string): Promise<Library> {
   // Validate before replacing anything. No defaults that manufacture attribution.
   const value = JSON.parse(text);
+  if (value?.kind === "learning-to-spiral-additive-lesson-pack")
+    throw new Error(
+      "This is a lesson pack. Use Add lesson pack instead of Restore backup. Nothing was replaced.",
+    );
   const fail = () => {
     throw new Error(
       "This is not a valid Learning to Spiral backup. Nothing was replaced.",

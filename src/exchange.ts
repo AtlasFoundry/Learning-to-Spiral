@@ -181,6 +181,10 @@ export function previewUpdate(
     );
   }
   const value = object(parsed, "Update");
+  if (value.kind === "learning-to-spiral-additive-lesson-pack")
+    throw new Error(
+      "This file adds new lessons. Use Add lesson pack in the workspace tools instead of Import from ChatGPT. Nothing was changed.",
+    );
   keys(
     value,
     ["format", "version", "lessonId", "changes", "additions"],

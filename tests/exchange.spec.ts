@@ -553,6 +553,12 @@ test("the standalone HTML supports the exchange offline and keeps the existing l
     .getByRole("checkbox", { name: "Accept Teaching notes", exact: true })
     .check();
   await page.getByRole("button", { name: "Save accepted changes" }).click();
+  // The old workspace can still show Saved locally while the modal commits.
+  // Wait for its completed transaction and the new editor value before reloading.
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByLabel("Teaching notes", { exact: true })).toHaveValue(
+    "Offline approved teaching notes.",
+  );
   await expect(page.getByRole("status")).toHaveText("Saved locally");
   await page.reload();
   await page.getByRole("button", { name: /Self-image · Lesson 1/ }).click();

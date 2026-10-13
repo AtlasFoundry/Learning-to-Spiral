@@ -32,6 +32,7 @@ import {
   Copy,
 } from "lucide-react";
 import ChatGPTImport from "./ChatGPTImport";
+import LessonPackImport from "./LessonPackImport";
 import { chatGPTBrief, copyText } from "./exchange";
 import { useDialogFocus } from "./dialog";
 import {
@@ -68,6 +69,7 @@ type Modal =
   | { kind: "link"; tab: Tab }
   | { kind: "export"; lesson: Lesson }
   | { kind: "chatgptImport"; lessonId: string }
+  | { kind: "lessonPack" }
   | { kind: "restore"; library: Library };
 const tabs: { name: Tab; icon: typeof BookOpen }[] = [
   { name: "Research", icon: BookOpen },
@@ -610,6 +612,13 @@ export default function App() {
             <Upload size={16} />
             Restore backup
           </button>
+          <button
+            onClick={() => setModal({ kind: "lessonPack" })}
+            disabled={busy}
+          >
+            <Plus size={16} />
+            Add lesson pack
+          </button>
           <p>
             Build your library.
             <br />
@@ -660,6 +669,13 @@ export default function App() {
               <button onClick={() => setModal({ kind: "settings" })}>
                 <Settings size={14} />
                 Edit pillar names
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => setModal({ kind: "lessonPack" })}
+              >
+                <Plus size={14} />
+                Add lesson pack
               </button>
             </div>
           </details>
@@ -1350,6 +1366,13 @@ export default function App() {
           onSaved={setLibrary}
           notify={setNotice}
         />
+      ) : modal?.kind === "lessonPack" ? (
+        <LessonPackImport
+          library={library}
+          close={() => setModal(null)}
+          onSaved={setLibrary}
+          notify={setNotice}
+        />
       ) : (
         modal && (
           <ModalContent
@@ -1379,7 +1402,7 @@ function ModalContent({
   selectedId,
   deleteEntry,
 }: {
-  modal: Exclude<Modal, { kind: "chatgptImport" }>;
+  modal: Exclude<Modal, { kind: "chatgptImport" | "lessonPack" }>;
   library: Library;
   close: () => void;
   setLibrary: React.Dispatch<React.SetStateAction<Library>>;
