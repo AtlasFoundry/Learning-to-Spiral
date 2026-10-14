@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import ChatGPTImport from "./ChatGPTImport";
 import LessonPackImport from "./LessonPackImport";
+import DeleteLesson from "./DeleteLesson";
 import { chatGPTBrief, copyText } from "./exchange";
 import { useDialogFocus } from "./dialog";
 import {
@@ -70,6 +71,7 @@ type Modal =
   | { kind: "export"; lesson: Lesson }
   | { kind: "chatgptImport"; lessonId: string }
   | { kind: "lessonPack" }
+  | { kind: "deleteLesson"; lessonId: string }
   | { kind: "restore"; library: Library };
 const tabs: { name: Tab; icon: typeof BookOpen }[] = [
   { name: "Research", icon: BookOpen },
@@ -248,6 +250,53 @@ function LinkedLessons({
         </p>
       )}
     </fieldset>
+  );
+}
+
+function LessonCard({
+  lesson,
+  pillarName,
+  sourceCount,
+  visualCount,
+  open,
+  remove,
+}: {
+  lesson: Lesson;
+  pillarName?: string;
+  sourceCount: number;
+  visualCount: number;
+  open: () => void;
+  remove: () => void;
+}) {
+  const titleId = useId();
+  return (
+    <article className="lesson-card-wrapper" aria-labelledby={titleId}>
+      <button className="lesson-card" onClick={open}>
+        <div className="card-kicker">
+          <span>{pillarName}</span>
+          <ArrowRight size={17} />
+        </div>
+        <h3 id={titleId}>{lesson.title}</h3>
+        <p>
+          {lesson.summary ||
+            "An idea ready to unfold. Add an overview in the lesson editor."}
+        </p>
+        <div className="card-footer">
+          <BookOpen size={14} />
+          {sourceCount} sources<span>·</span>
+          {visualCount} visuals
+        </div>
+      </button>
+      <button
+        className="lesson-card-delete"
+        aria-label="Delete lesson"
+        aria-describedby={titleId}
+        title={`Delete “${lesson.title}”`}
+        onClick={remove}
+      >
+        <Trash2 size={15} />
+      </button>
+    </article>
   );
 }
 
@@ -806,41 +855,27 @@ export default function App() {
                       matches([l.title, l.summary]),
                   )
                   .map((l) => (
-                    <button
-                      className="lesson-card"
+                    <LessonCard
                       key={l.id}
-                      onClick={() => openLesson(l)}
-                    >
-                      <div className="card-kicker">
-                        <span>
-                          {
-                            library.pillars.find((p) => p.id === l.pillarId)
-                              ?.name
-                          }
-                        </span>
-                        <ArrowRight size={17} />
-                      </div>
-                      <h3>{l.title}</h3>
-                      <p>
-                        {l.summary ||
-                          "An idea ready to unfold. Add an overview in the lesson editor."}
-                      </p>
-                      <div className="card-footer">
-                        <BookOpen size={14} />
-                        {
-                          library.sources.filter((s) =>
-                            effectiveSource(s).lessonIds.includes(l.id),
-                          ).length
-                        }{" "}
-                        sources<span>·</span>
-                        {
-                          library.visuals.filter((v) =>
-                            v.lessonIds.includes(l.id),
-                          ).length
-                        }{" "}
-                        visuals
-                      </div>
-                    </button>
+                      lesson={l}
+                      pillarName={
+                        library.pillars.find((p) => p.id === l.pillarId)?.name
+                      }
+                      sourceCount={
+                        library.sources.filter((s) =>
+                          effectiveSource(s).lessonIds.includes(l.id),
+                        ).length
+                      }
+                      visualCount={
+                        library.visuals.filter((v) =>
+                          v.lessonIds.includes(l.id),
+                        ).length
+                      }
+                      open={() => openLesson(l)}
+                      remove={() =>
+                        setModal({ kind: "deleteLesson", lessonId: l.id })
+                      }
+                    />
                   ))}
               </div>
               {!library.lessons.filter(
@@ -1373,6 +1408,18 @@ export default function App() {
           onSaved={setLibrary}
           notify={setNotice}
         />
+      ) : modal?.kind === "deleteLesson" ? (
+        <DeleteLesson
+          library={library}
+          lessonId={modal.lessonId}
+          close={() => setModal(null)}
+          onSaved={(next) => {
+            setLibrary(next);
+            if (selectedId === modal.lessonId) setSelectedId("");
+            if (lessonFilter === modal.lessonId) setLessonFilter("all");
+          }}
+          notify={setNotice}
+        />
       ) : (
         modal && (
           <ModalContent
@@ -1402,7 +1449,10 @@ function ModalContent({
   selectedId,
   deleteEntry,
 }: {
-  modal: Exclude<Modal, { kind: "chatgptImport" | "lessonPack" }>;
+  modal: Exclude<
+    Modal,
+    { kind: "chatgptImport" | "lessonPack" | "deleteLesson" }
+  >;
   library: Library;
   close: () => void;
   setLibrary: React.Dispatch<React.SetStateAction<Library>>;

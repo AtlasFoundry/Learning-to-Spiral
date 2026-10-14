@@ -669,7 +669,13 @@ main {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
+.lesson-card-wrapper {
+  position: relative;
+  min-width: 0;
+}
 .lesson-card {
+  width: 100%;
+  height: 100%;
   border: 1px solid var(--border);
   background: var(--paper);
   border-radius: 7px;
@@ -697,6 +703,31 @@ main {
 }
 .lesson-card .card-kicker {
   margin-bottom: 20px;
+  padding-right: 34px;
+}
+.lesson-card-delete {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 5px;
+  color: #89927d;
+}
+.lesson-card-delete:hover {
+  color: #a05245;
+  background: #f3e7e2;
+}
+.primary.danger {
+  background: #934d43;
+  border-color: #934d43;
+}
+.primary.danger:hover {
+  background: #7e4038;
 }
 .lesson-card h3 {
   font-size: 25px;

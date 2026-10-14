@@ -131,6 +131,24 @@ export function safeUrl(value: string): string | undefined {
     return;
   }
 }
+export function removeLesson(library: Library, lessonId: string): Library {
+  if (!library.lessons.some((lesson) => lesson.id === lessonId))
+    throw new Error("This lesson no longer exists. Nothing was deleted.");
+  const unlink = <T extends { lessonIds: string[] }>(record: T): T =>
+    record.lessonIds.includes(lessonId)
+      ? {
+          ...record,
+          lessonIds: record.lessonIds.filter((id) => id !== lessonId),
+        }
+      : record;
+  return {
+    ...library,
+    lessons: library.lessons.filter((lesson) => lesson.id !== lessonId),
+    sources: library.sources.map(unlink),
+    quotes: library.quotes.map(unlink),
+    visuals: library.visuals.map(unlink),
+  };
+}
 let database: Promise<IDBDatabase> | undefined;
 function db() {
   return (database ??= new Promise<IDBDatabase>((resolve, reject) => {
